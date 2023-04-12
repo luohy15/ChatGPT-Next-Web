@@ -48,12 +48,15 @@ const tr: LocaleType = {
       "Sıfırlama, geçerli görüşme geçmişini ve geçmiş belleği siler. Sıfırlamak istediğinizden emin misiniz?",
   },
   Home: {
+    Login: "",
+    Logout: "",
     NewChat: "Yeni Sohbet",
     DeleteChat: "Seçili sohbeti silmeyi onaylıyor musunuz?",
     DeleteToast: "Sohbet Silindi",
     Revert: "Geri Al",
   },
   Settings: {
+    User: "",
     Title: "Ayarlar",
     SubTitle: "Tüm Ayarlar",
     Actions: {
