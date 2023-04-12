@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSideConfig } from "./app/config/server";
 import md5 from "spark-md5";
+import jwtDecode, { JwtPayload } from "jwt-decode";
 
 export const config = {
   matcher: ["/api/openai", "/api/chat-stream"],
@@ -11,13 +12,14 @@ const serverConfig = getServerSideConfig();
 export function middleware(req: NextRequest) {
   const accessCode = req.headers.get("access-code");
   const token = req.headers.get("token");
+  const auth0Token = req.headers.get("auth0-token");
   const hashedCode = md5.hash(accessCode ?? "").trim();
 
   console.log("[Auth] allowed hashed codes: ", [...serverConfig.codes]);
   console.log("[Auth] got access code:", accessCode);
   console.log("[Auth] hashed access code:", hashedCode);
 
-  if (serverConfig.needCode && !serverConfig.codes.has(hashedCode) && !token) {
+  if (serverConfig.needCode && !serverConfig.codes.has(hashedCode) && !token && !auth0Token) {
     return NextResponse.json(
       {
         error: true,
@@ -28,6 +30,22 @@ export function middleware(req: NextRequest) {
         status: 401,
       },
     );
+  }
+  
+  // check auth0 token
+  if (auth0Token) {
+    const decoded = jwtDecode<JwtPayload>(auth0Token);
+    if (decoded.iss !== process.env.AUTH0_ISSUER_BASE_URL) {
+      return NextResponse.json(
+        {
+          error: true,
+          msg: "Invalid Auth0 Token",
+        },
+        {
+          status: 401,
+        },
+      );
+    }
   }
 
   // inject api key

@@ -4,9 +4,10 @@ import { persist } from "zustand/middleware";
 export interface AccessControlStore {
   accessCode: string;
   token: string;
-
+  auth0Token: string;
   needCode: boolean;
 
+  updateAuth0Token: (_: string) => void;
   updateToken: (_: string) => void;
   updateCode: (_: string) => void;
   enabledAccessControl: () => boolean;
@@ -21,6 +22,7 @@ let fetchState = 0; // 0 not fetch, 1 fetching, 2 done
 export const useAccessStore = create<AccessControlStore>()(
   persist(
     (set, get) => ({
+      auth0Token: "",
       token: "",
       accessCode: "",
       needCode: true,
@@ -35,10 +37,16 @@ export const useAccessStore = create<AccessControlStore>()(
       updateToken(token: string) {
         set((state) => ({ token }));
       },
+      updateAuth0Token(auth0Token: string) {
+        set((state) => ({ auth0Token }));
+      },
       isAuthorized() {
-        // has token or has code or disabled access control
+        // has token or has code or disabled access control or auth0 token
         return (
-          !!get().token || !!get().accessCode || !get().enabledAccessControl()
+          !!get().token ||
+          !!get().accessCode ||
+          !get().enabledAccessControl() ||
+          !!get().auth0Token
         );
       },
       fetch() {

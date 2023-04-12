@@ -380,6 +380,7 @@ export function Settings(props: { closeSettings: () => void }) {
         </List>
 
         <List>
+          {/*
           {enabledAccessControl ? (
             <SettingItem
               title={Locale.Settings.AccessCode.Title}
@@ -397,6 +398,7 @@ export function Settings(props: { closeSettings: () => void }) {
           ) : (
             <></>
           )}
+          */}
 
           {/*
           <SettingItem

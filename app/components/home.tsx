@@ -16,7 +16,7 @@ import AddIcon from "../icons/add.svg";
 import LoadingIcon from "../icons/three-dots.svg";
 import CloseIcon from "../icons/close.svg";
 
-import { useChatStore } from "../store";
+import { useChatStore, useAccessStore } from "../store";
 import { isMobileScreen } from "../utils";
 import Locale from "../locales";
 import { Chat } from "./chat";
@@ -24,7 +24,7 @@ import { Chat } from "./chat";
 import dynamic from "next/dynamic";
 import { REPO_URL } from "../constant";
 import { ErrorBoundary } from "./error";
-import { Auth0Provider } from "@auth0/auth0-react";
+import { Auth0Provider, useAuth0 } from "@auth0/auth0-react";
 
 export function Loading(props: { noLogo?: boolean }) {
   return (
@@ -134,6 +134,8 @@ const useHasHydrated = () => {
 };
 
 function _Home() {
+  const { isAuthenticated, getAccessTokenSilently } = useAuth0();
+
   const [createNewSession, currentIndex, removeSession] = useChatStore(
     (state) => [
       state.newSession,
@@ -142,6 +144,7 @@ function _Home() {
     ],
   );
   const chatStore = useChatStore();
+  const accessStore = useAccessStore();
   const loading = !useHasHydrated();
   const [showSideBar, setShowSideBar] = useState(true);
 
@@ -153,6 +156,31 @@ function _Home() {
   const { onDragMouseDown } = useDragSideBar();
 
   useSwitchTheme();
+
+  useEffect(() => {
+    (async () => {
+      if (isAuthenticated) {
+        try {
+          const token = await getAccessTokenSilently({
+            authorizationParams: {
+              audience: "https://chaigpt.vercel.app/",
+              scope: "read:api",
+            },
+          });
+          accessStore.updateAuth0Token(token);
+        } catch (e) {
+          console.error(e);
+        }
+      } else {
+        try {
+          const token = "";
+          accessStore.updateAuth0Token(token);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    })();
+  }, [isAuthenticated]);
 
   if (loading) {
     return <Loading />;

@@ -45,6 +45,10 @@ function getHeaders() {
     headers["token"] = accessStore.token;
   }
 
+  if (accessStore.auth0Token && accessStore.auth0Token.length > 0) {
+    headers["auth0-token"] = accessStore.auth0Token;
+  }
+
   return headers;
 }
 
@@ -171,11 +175,11 @@ export async function requestChatStream(
         const resTimeoutId = setTimeout(() => finish(), TIME_OUT_MS);
         const content = await reader?.read();
         clearTimeout(resTimeoutId);
-      
+
         if (!content || !content.value) {
           break;
         }
-      
+
         const text = decoder.decode(content.value, { stream: true });
         responseText += text;
 
