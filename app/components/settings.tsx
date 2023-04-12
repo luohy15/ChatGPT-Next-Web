@@ -33,6 +33,7 @@ import { SearchService, usePromptStore } from "../store/prompt";
 import { requestUsage } from "../requests";
 import { ErrorBoundary } from "./error";
 import { InputRange } from "./input-range";
+import { useAuth0 } from "@auth0/auth0-react";
 
 function SettingItem(props: {
   title: string;
@@ -144,6 +145,8 @@ export function Settings(props: { closeSettings: () => void }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const { loginWithRedirect, logout, user, isAuthenticated } = useAuth0();
+
   return (
     <ErrorBoundary>
       <div className={styles["window-header"]}>
@@ -197,6 +200,36 @@ export function Settings(props: { closeSettings: () => void }) {
         </div>
       </div>
       <div className={styles["settings"]}>
+        <List>
+          <SettingItem
+            title={Locale.Settings.User}
+            subTitle={isAuthenticated ? user?.email : ""}
+          >
+            {isAuthenticated ? (
+              <Link
+                href=""
+                className="link"
+                onClick={() => {
+                  logout({
+                    logoutParams: { returnTo: window.location.origin },
+                  });
+                }}
+              >
+                {Locale.Home.Logout}
+              </Link>
+            ) : (
+              <Link
+                href=""
+                className="link"
+                onClick={() => {
+                  loginWithRedirect();
+                }}
+              >
+                {Locale.Home.Login}
+              </Link>
+            )}
+          </SettingItem>
+        </List>
         <List>
           <SettingItem title={Locale.Settings.Avatar}>
             <Popover
@@ -365,6 +398,7 @@ export function Settings(props: { closeSettings: () => void }) {
             <></>
           )}
 
+          {/*
           <SettingItem
             title={Locale.Settings.Token.Title}
             subTitle={Locale.Settings.Token.SubTitle}
@@ -402,6 +436,7 @@ export function Settings(props: { closeSettings: () => void }) {
               />
             )}
           </SettingItem>
+            */}
 
           <SettingItem
             title={Locale.Settings.HistoryCount.Title}

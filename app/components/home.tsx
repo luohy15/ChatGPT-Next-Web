@@ -24,6 +24,7 @@ import { Chat } from "./chat";
 import dynamic from "next/dynamic";
 import { REPO_URL } from "../constant";
 import { ErrorBoundary } from "./error";
+import { Auth0Provider } from "@auth0/auth0-react";
 
 export function Loading(props: { noLogo?: boolean }) {
   return (
@@ -253,8 +254,17 @@ function _Home() {
 
 export function Home() {
   return (
-    <ErrorBoundary>
-      <_Home></_Home>
-    </ErrorBoundary>
+    <Auth0Provider
+      domain="chaigpt.jp.auth0.com"
+      clientId="eHwvBmOmRq5Ju50v4NH5qwUBXZCLssQ5"
+      authorizationParams={{
+        redirect_uri:
+          typeof window === "undefined" ? "" : window.location.origin,
+      }}
+    >
+      <ErrorBoundary>
+        <_Home></_Home>
+      </ErrorBoundary>
+    </Auth0Provider>
   );
 }

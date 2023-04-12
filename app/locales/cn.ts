@@ -45,12 +45,15 @@ const cn = {
     ResetConfirm: "重置后将清空当前对话记录以及历史记忆，确认重置？",
   },
   Home: {
+    Login: "登录",
+    Logout: "登出",
     NewChat: "新的聊天",
     DeleteChat: "确认删除选中的对话？",
     DeleteToast: "已删除会话",
     Revert: "撤销",
   },
   Settings: {
+    User: "用户",
     Title: "设置",
     SubTitle: "设置选项",
     Actions: {

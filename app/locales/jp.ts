@@ -47,12 +47,15 @@ const jp = {
       "リセット後、現在のチャット履歴と過去のメモリがクリアされます。リセットしてもよろしいですか？",
   },
   Home: {
+    Login: "",
+    Logout: "",
     NewChat: "新しいチャット",
     DeleteChat: "選択したチャットを削除してもよろしいですか？",
     DeleteToast: "チャットが削除されました",
     Revert: "元に戻す",
   },
   Settings: {
+    User: "",
     Title: "設定",
     SubTitle: "設定オプション",
     Actions: {
