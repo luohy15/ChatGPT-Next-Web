@@ -15,63 +15,72 @@ export function middleware(req: NextRequest) {
   const auth0Token = req.headers.get("auth0-token");
   const hashedCode = md5.hash(accessCode ?? "").trim();
 
-  console.log("[Auth] allowed hashed codes: ", [...serverConfig.codes]);
-  console.log("[Auth] got access code:", accessCode);
-  console.log("[Auth] hashed access code:", hashedCode);
+  // case1: provided apikey
+  if (token) {
+    console.log("[Auth] set user token");
+    return NextResponse.next();
+  }
 
-  if (serverConfig.needCode && !serverConfig.codes.has(hashedCode) && !token && !auth0Token) {
+  // inject apiKey
+  const apiKey = serverConfig.apiKey;
+  if (apiKey) {
+    req.headers.set("token", apiKey);
+  } else {
     return NextResponse.json(
       {
         error: true,
-        needAccessCode: true,
-        msg: "Please go settings page and fill your access code.",
+        msg: "Empty Api Key",
       },
       {
         status: 401,
       },
     );
   }
-  
-  // check auth0 token
+
+  // case2: matched access code
+  if (serverConfig.needCode && serverConfig.codes.has(hashedCode)) {
+    console.log("[Auth] allowed hashed codes: ", [...serverConfig.codes]);
+    console.log("[Auth] got access code:", accessCode);
+    console.log("[Auth] hashed access code:", hashedCode);
+    console.log("[Auth] matched access code");
+    return NextResponse.next({
+      request: {
+        headers: req.headers,
+      },
+    });
+  }
+
+  // case3: logined user
   if (auth0Token) {
     const decoded = jwtDecode<JwtPayload>(auth0Token);
-    if (decoded.iss !== process.env.AUTH0_ISSUER_BASE_URL) {
-      return NextResponse.json(
-        {
-          error: true,
-          msg: "Invalid Auth0 Token",
+    if (decoded.iss === process.env.AUTH0_ISSUER_BASE_URL) {
+      console.log("[Auth] logined user");
+      return NextResponse.next({
+        request: {
+          headers: req.headers,
         },
-        {
-          status: 401,
-        },
-      );
+      });
     }
+    return NextResponse.json(
+      {
+        error: true,
+        msg: "Invalid Auth0 Token",
+      },
+      {
+        status: 401,
+      },
+    );
   }
 
-  // inject api key
-  if (!token) {
-    const apiKey = serverConfig.apiKey;
-    if (apiKey) {
-      console.log("[Auth] set system token");
-      req.headers.set("token", apiKey);
-    } else {
-      return NextResponse.json(
-        {
-          error: true,
-          msg: "Empty Api Key",
-        },
-        {
-          status: 401,
-        },
-      );
-    }
-  } else {
-    console.log("[Auth] set user token");
-  }
-
-  return NextResponse.next({
-    request: {
-      headers: req.headers,
+  // default: reject
+  console.log("[Auth] auth failed:", req.headers.get("path"));
+  return NextResponse.json(
+    {
+      error: true,
+      msg: "Please go settings page and login.",
     },
-  });
+    {
+      status: 401,
+    },
+  );
 }
