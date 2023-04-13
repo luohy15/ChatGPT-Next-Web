@@ -163,8 +163,8 @@ function _Home() {
         try {
           const token = await getAccessTokenSilently({
             authorizationParams: {
+              redirect_uri: window.location.origin,
               audience: "https://chaigpt.vercel.app/",
-              scope: "read:api",
             },
           });
           accessStore.updateAuth0Token(token);
@@ -285,9 +285,12 @@ export function Home() {
     <Auth0Provider
       domain="chaigpt.jp.auth0.com"
       clientId="eHwvBmOmRq5Ju50v4NH5qwUBXZCLssQ5"
+      useRefreshTokens
+      cacheLocation="localstorage"
       authorizationParams={{
         redirect_uri:
-          typeof window === "undefined" ? "" : window.location.origin,
+          typeof window !== "undefined" ? window.location.origin : undefined,
+        audience: "https://chaigpt.vercel.app/",
       }}
     >
       <ErrorBoundary>
