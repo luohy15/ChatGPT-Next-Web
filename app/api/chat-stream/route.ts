@@ -1,6 +1,10 @@
 import { createParser } from "eventsource-parser";
 import { NextRequest } from "next/server";
-import { requestOpenai } from "../common";
+import {
+  requestOpenai,
+  numTokensFromText,
+  numTokensFromMessages,
+} from "../common";
 
 async function createStream(req: NextRequest) {
   const encoder = new TextEncoder();
@@ -19,17 +23,26 @@ async function createStream(req: NextRequest) {
 
   const stream = new ReadableStream({
     async start(controller) {
-      function onParse(event: any) {
+      const response: string[] = [];
+      async function onParse(event: any) {
         if (event.type === "event") {
           const data = event.data;
           // https://beta.openai.com/docs/api-reference/completions/create#completions/create-stream
           if (data === "[DONE]") {
             controller.close();
+            const responseText = response.join("");
+            const responseTokens = await numTokensFromText(responseText);
+            console.log(
+              "[Access] ",
+              req.headers.get("access-code"),
+              responseTokens,
+            );
             return;
           }
           try {
             const json = JSON.parse(data);
             const text = json.choices[0].delta.content;
+            response.push(text);
             const queue = encoder.encode(text);
             controller.enqueue(queue);
           } catch (e) {
@@ -49,6 +62,11 @@ async function createStream(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const json = await req.clone().json();
+    const messages = json.messages;
+    const modelName = json.model;
+    const numTokens = await numTokensFromMessages(messages, modelName);
+    console.log("[Access] ", req.headers.get("access-code"), numTokens);
     const stream = await createStream(req);
     return new Response(stream);
   } catch (error) {
